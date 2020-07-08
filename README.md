@@ -109,3 +109,13 @@ Before you start the project, please ensure that you have installed the `npm` cl
 └── tsconfig.json
 
 ```
+
+# How to run
+
+You can use the `make` cli or `npm run` cli to start the project
+
+    $ make run
+
+or
+
+    $ npm run dev
