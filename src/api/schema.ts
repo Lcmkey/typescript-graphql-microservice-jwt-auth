@@ -1,5 +1,6 @@
-import { Request, Response } from "express";
 import { buildSchema } from "graphql";
+
+import User from "./../entity/user";
 
 const schema = buildSchema(`
   type Profile {
@@ -29,33 +30,59 @@ const schema = buildSchema(`
 `);
 
 const root = {
-  profile: async ({}, {}, context: any) => {
-    console.log(context);
-    context.res.status(200);
-    return { ukey: "userKey", email: "email" };
+  profile: async ({ ukey }: { ukey: string }, context: any) => {
+    const user = await User.getByUserKey(ukey);
+
+    if (!user) {
+      context.res.status(404);
+      throw new Error("Invalid user");
+    }
+
+    return user;
   },
 
   register: async (
     {
       email,
-      password
-    }: {
-      email: string;
-      password: string;
-      confirmation: string;
-    },
+      password,
+      confirmation
+    }: { email: string; password: string; confirmation: string },
     context: any
   ) => {
-    context.res.status(201);
-    return { ukey: "userKey", tmp_conform_token: "tmpConfirmToken" };
+    const result = await User.register(email, password, confirmation);
+    context.res.status(result.status);
+
+    if (result.isError()) {
+      throw result.getError()!;
+    }
+
+    const user = result.getObject()!;
+
+    return { ukey: user.ukey, tmp_confirm_token: "tmpConfirmToken" };
   },
 
-  confirm: async (
-    { email }: { email: string },
-    context: any
-  ): Promise<Boolean> => {
-    context.res.status(200);
+  confirm: async ({ email }: { email: string }, context: any) => {
+    const user = await User.getByEmail(email);
 
+    if (!user) {
+      context.res.status(404);
+      throw new Error("User not found");
+    }
+
+    if (user.confirmed) {
+      context.res.status(400);
+      throw new Error("User already confirmed");
+    }
+
+    user.confirmed = true;
+    const success = await user.save();
+
+    if (!success) {
+      context.res.status(500);
+      throw new Error("Confirmation failed");
+    }
+
+    context.res.status(200);
     return true;
   },
 
@@ -63,8 +90,14 @@ const root = {
     { email, password }: { email: string; password: string },
     context: any
   ) => {
-    context.res.status(200);
-    return { ukey: "userKey", access_token: "accessToken" };
+    const result = await User.login(email, password);
+    context.res.status(result.status);
+
+    if (result.isError()) {
+      throw result.getError()!;
+    }
+
+    return result.getObject()!;
   }
 };
 

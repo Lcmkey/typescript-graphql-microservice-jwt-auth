@@ -1,35 +1,36 @@
-
 # Prepare
-1. install npm 
-2. install typescript cli
-    ```bash
-    $ sudo npm i typescript -g
-    ```
 
-__typescript config init__
+1. install npm
+2. install typescript cli
+   ```bash
+   $ sudo npm i typescript -g
+   ```
+
+**typescript config init**
+
 ```bash
 $ tsc --init
 ```
 
-
-__uncomment the below content__
+**uncomment the below content**
 
 1. `outDir` && `rootDir` (line 17, 18)
-    ```
-    "outDir": "./dist",
-    "rootDir": "./src"
-    ```
+
+   ```
+   "outDir": "./dist",
+   "rootDir": "./src"
+   ```
 
 2. `moduleResolution` (line 44)
 3. `experimentalDecorators` && `emitDecoratorMetadata` (line 62, 63)
 
+**Init project**
 
-__Init project__
 ```bash
 $ npm init -y
 ```
 
-__Install Package__
+**Install Package**
 
 ```bash
 $ npm i bcrypt dotenv express express-graphql graphql pg reflect-metadata typeorm uuid
@@ -37,7 +38,8 @@ $ npm i -D @types/bcryptjs @types/dotenv @types/express @types/express-graphql @
 $ npm i -D nodemon ts-node typescript
 ```
 
-__Change Script__
+**Change Script**
+
 ```bash
 # package.json
   "scripts": {
@@ -45,4 +47,30 @@ __Change Script__
     "dev": "nodemon src/app.ts",
     "build": "tsc -p ."
   },
+```
+
+**Create postgre database**
+
+```bash
+$ sudo -u postgres createdb graphql_jwt_auth_dev
+```
+
+**Create typeorm config**
+
+```bash
+# ormconfig.json
+
+{
+  "type": "postgres",
+  "host": "localhost",
+  "username": "postgres",
+  "password": "",
+  "database": "graphql_jwt_auth_dev",
+  "synchronize": true,
+  "logging": false,
+  "entities": ["src/entity/**/*.ts"],
+  "migrations": ["src/migration/**/*.ts"],
+  "subscribers": ["src/subscriber/**/*.ts"]
+}
+
 ```
